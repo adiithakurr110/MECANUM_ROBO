@@ -1,6 +1,7 @@
 # MECAVISION – Vision-Based Autonomous Mecanum Robot
 
 **Team:** Tech Minions
+
 **Team Members:** Bhawna Singh, Aditya Singh, Harshit Vats
 
 ## Project Overview
