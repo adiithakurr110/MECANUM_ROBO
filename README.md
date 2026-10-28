@@ -1,313 +1,186 @@
-MECAVISION – Vision-Based Autonomous Mecanum Robot
+# MECAVISION – Vision-Based Autonomous Mecanum Robot
 
-Team
+**Team:** Tech Minions
+**Team Members:** Bhawna Singh, Aditya Singh, Harshit Vats
 
-Team Name: Tech Minions
+## Project Overview
 
-Event: Hack in Hills 2026
+MECAVISION is a proposed autonomous robot designed to detect obstacles and navigate toward a selected target. It uses four mecanum wheels for forward, backward, sideways, diagonal, and turning movements.
 
-Problem Statement: Problem Statement 01 — Vision-Based Autonomous Robot
+The project includes browser-based simulations and a Wokwi circuit design to test parts of the system before building the physical robot.
 
-Team Members:
+**Current Status:** The simulation files and circuit design are available in the repository. The physical robot has not yet been fully assembled and tested.
 
-Bhawna Singh — Perception & Computer Vision
+## 1. Hardware Components
 
-Aditya Singh — Embedded Systems & Hardware Integration
+The following components are planned for the physical prototype. Specifications should be verified against the exact components before assembly.
 
-Harshit Vats — Kinematics, Trajectory & Control
+| S. No. | Component                     | Specifications                     | Purpose                                             |
+| -----: | ----------------------------- | ---------------------------------- | --------------------------------------------------- |
+|      1 | Arduino Mega 2560 Rev3        | 5V logic, ATmega2560, 16 MHz       | Main controller for sensors and motor control       |
+|      2 | ESP32-WROOM-32D               | Wi-Fi, Bluetooth, UART             | Communication with the host computer                |
+|      3 | RPLIDAR A1M8                  | 360° 2D scanning, UART             | Measures distances around the robot                 |
+|      4 | HC-SR04 Ultrasonic Sensors ×3 | 5V, approximately 2–400 cm range   | Detects obstacles on the left, front, and right     |
+|      5 | BTS7960 Motor Drivers ×4      | Motor supply typically 6–27V       | Controls the four drive motors                      |
+|      6 | 12V Geared DC Motors ×4       | Planned nominal speed: 300 RPM     | Drives the wheels                                   |
+|      7 | Mecanum Wheels ×4             | Planned diameter: 97 mm            | Enables sideways and diagonal movement              |
+|      8 | MPU6050 IMU                   | Accelerometer and gyroscope, I²C   | Measures motion and orientation                     |
+|      9 | 20×4 I²C LCD                  | 5V, planned address `0x27`         | Displays system status                              |
+|     10 | Active Piezo Buzzer           | 5V                                 | Provides audible alerts                             |
+|     11 | Emergency-Stop Button         | Normally closed contact planned    | Allows emergency stopping                           |
+|     12 | 3S Li-ion Battery Pack        | 11.1V nominal, 12.6V fully charged | Main power source                                   |
+|     13 | DC-DC Buck Converters ×2      | Regulated outputs planned          | Supplies suitable voltage to electronics and motors |
 
-Project Overview
+## 2. Circuit Connections and System Architecture
 
-MECAVISION is a proposed mobile robot designed to detect obstacles and navigate toward a selected target. Four mecanum wheels are planned to support forward, backward, sideways and turning movement. Browser simulations and a Wokwi circuit are used to test parts of the design before building the physical robot.
+The Arduino Mega is intended to receive sensor readings, process obstacle information, and control the motors through the motor drivers. The ESP32 is intended to provide communication with a host computer.
 
-Current status: The simulations and circuit design are available in the repository. The physical robot has not yet been fully assembled and tested, so real-world performance is not confirmed.
+### System Architecture
 
-1. Hardware Components
+```text
+        Ultrasonic Sensors
+                |
+             RPLIDAR
+                |
+                v
+         Arduino Mega
+                |
+         Motor Drivers
+                |
+        Four DC Motors
+                |
+          Mecanum Wheels
 
-The following components are planned for the physical prototype. Specifications are based on the current design and should be checked against the exact parts before wiring.
+      Host Computer
+             ↕
+            ESP32
+             ↕
+        Arduino Mega
+```
 
-Component
+### Arduino Mega Pin Connections
 
-Specification
+| Component                                 | Arduino Mega Connection                 |
+| ----------------------------------------- | --------------------------------------- |
+| Left, front, and right ultrasonic sensors | Digital pins 22–27                      |
+| ESP32 serial communication                | UART1: TX1 pin 18, RX1 pin 19           |
+| RPLIDAR serial communication              | UART2: TX2 pin 16, RX2 pin 17           |
+| MPU6050 and I²C LCD                       | SDA pin 20, SCL pin 21                  |
+| Front-left motor driver                   | PWM pin 2, direction pin 30             |
+| Front-right motor driver                  | PWM pin 3, direction pin 31             |
+| Rear-left motor driver                    | PWM pin 4, direction pin 32             |
+| Rear-right motor driver                   | PWM pin 5, direction pin 33             |
+| Buzzer                                    | Digital pin 8                           |
+| Emergency-stop logic input                | Digital pin 48                          |
+| Battery voltage monitoring                | Analog pin A0 through a voltage divider |
 
-Purpose
+**Important:** These are the planned connections. Verify them against `sketch.ino` and `diagram.json` before assembling the circuit. Use suitable regulated power supplies and common ground connections where required. Never connect the battery directly to a 5V logic pin.
 
-Arduino Mega 2560 Rev3
+### Circuit Files
 
-5 V logic; ATmega2560, 16 MHz
+* `circuit diagram/` — Circuit diagrams and connection references.
+* `wokiwi design(hardware)/diagram.json` — Wokwi circuit layout.
+* `wokiwi design(hardware)/sketch.ino` — Arduino code for the Wokwi design.
 
-Main controller for motion and safety checks
+## 3. Simulation Setup and Testing
 
-ESP32-WROOM-32D
+### A. 3D Browser Simulation
 
-Wi-Fi/Bluetooth; UART communication
+**File:** `Simulations/simulation-3d.html` or `Simulations/index.html`
 
-Communication with the host computer
+1. Open the HTML file in Chrome, Edge, Firefox, or another modern browser.
 
-RPLIDAR A1M8
+2. If the simulation does not load correctly, open a terminal in the `Simulations` folder.
 
-360° 2D scanning; UART
+3. Run:
 
-Measures distances around the robot
+   ```bash
+   python -m http.server 8000
+   ```
 
-HC-SR04 Ultrasonic Sensors (×3)
+4. Open `http://localhost:8000/` in your browser.
 
-5 V; approx. 2–400 cm range
+5. Test the available movement controls, target movement, and obstacle-avoidance scenarios.
 
-Detects nearby obstacles at the left, front and right
+If the files use different names, open the actual HTML file present in your repository.
 
-BTS7960 Motor Drivers (×4)
+### B. 2D Browser Simulation
 
-Motor supply typically 6–27 V; 5 V logic
+**File:** `Simulations/simulation-2d.html`
 
-Controls the four drive motors
+1. Open the HTML file in a browser.
+2. Start the simulation.
+3. Move the available obstacles.
+4. Observe how the simulated robot responds to the obstacles.
 
-12 V Geared DC Motors with Encoders (×4)
+### C. Wokwi Hardware Simulation
 
-Planned nominal speed: 300 RPM
+**Files:**
 
-Drives the mecanum wheels
+* `wokiwi design(hardware)/sketch.ino`
+* `wokiwi design(hardware)/diagram.json`
 
-Mecanum Wheels (×4)
+**Steps:**
 
-Planned diameter: 97 mm
+1. Open [Wokwi](https://wokwi.com/).
+2. Create an Arduino Mega 2560 project.
+3. Copy the contents of `sketch.ino` into the code editor.
+4. Configure the circuit using `diagram.json`.
+5. Start the simulation.
+6. Open the Serial Monitor using the baud rate specified in the code.
+7. Test the ultrasonic sensors at different distances.
+8. Check the obstacle-detection response and emergency-stop input if these features are implemented in the current circuit.
 
-Allows sideways, diagonal, forward and backward movement
+Record the results that the simulation actually produces. The available features depend on the current code and the components supported by Wokwi.
 
-MPU6050 IMU
+## 4. Proposed Physical Implementation
 
-3-axis gyroscope and accelerometer; I²C
+The planned robot will use a rectangular chassis with four geared DC motors and mecanum wheels.
 
-Measures motion and orientation
+* **Chassis:** Supports the motors, wheels, battery, and electronic components.
+* **Arduino Mega:** Processes sensor readings and manages basic movement control.
+* **ESP32:** Provides communication with the host computer.
+* **Ultrasonic sensors:** Detect nearby obstacles from different directions.
+* **RPLIDAR:** Provides 360-degree distance measurements.
+* **Motor drivers:** Control the four DC motors.
+* **MPU6050:** Measures motion and orientation.
+* **Battery and buck converters:** Supply suitable power to the system.
+* **LCD and buzzer:** Display status and provide alerts.
+* **Emergency stop:** Provides a way to stop the system.
 
-20×4 I²C LCD
+The battery should be mounted securely, preferably low on the chassis. High-current motor wiring should be routed carefully, away from sensitive signal wiring where practical. The RPLIDAR should have a clear view around the robot.
 
-5 V; planned I²C address 0x27
+Before testing the complete robot, verify the power system, test each motor and sensor individually, and confirm that the emergency stop works. Initial movement tests should be performed at low speed in a clear area.
 
-Displays status and sensor information
+## 5. Simulation Limitations and Future Work
 
-Active Piezo Buzzer
+The simulations represent only the behaviour implemented in their code. They do not fully reproduce real-world electrical and mechanical conditions.
 
-5 V
+**Current limitations:**
 
-Gives audible alerts
+* Physical robot assembly and performance have not been fully verified.
+* Wokwi may not support every component or reproduce its real electrical behaviour.
+* Browser simulations cannot fully represent motor load, wheel traction, battery voltage drop, or sensor noise.
+* Real-world obstacle avoidance depends on correct sensor integration, calibration, and control logic.
+* RPLIDAR and computer-vision integration must be verified separately if they are not implemented in the current simulation.
 
-Emergency-Stop Button
+**Next steps:**
 
-Normally closed contact planned
+1. Verify all component ratings and wiring connections.
+2. Check power regulation and emergency-stop operation.
+3. Test each motor and sensor separately.
+4. Calibrate sensor readings and motor directions.
+5. Integrate the components and test obstacle avoidance at low speed.
+6. Compare physical robot behaviour with the simulation results.
 
-Allows the operator to stop the system
+## Repository Structure
 
-3S Li-ion Battery Pack
-
-11.1 V nominal; 12.6 V fully charged
-
-Main power source for the robot
-
-DC-DC Buck Converters (×2)
-
-Regulated outputs planned for logic and motor supply
-
-Provides suitable power rails for the electronics and motors
-
-2. Circuit Connections and System Architecture
-
-The planned system sends sensor readings to the Arduino Mega. The controller uses the readings to decide whether to move, turn or stop, then sends control signals to the motor drivers. The ESP32 is intended to provide communication with a host computer. The RPLiDAR and computer-vision functions depend on their actual integration and are not all represented by the Wokwi circuit.
-
-System Architecture
-
-The diagram below shows the proposed system architecture. The actual communication and sensor integration depend on the code and hardware that have been implemented and tested.
-
-                 ┌─────────────────────────┐
-                 │      Host Computer       │
-                 │ Vision / Communication  │
-                 └────────────┬────────────┘
-                              ↕
-                 ┌────────────▼────────────┐
-                 │          ESP32          │
-                 │ Communication Interface │
-                 └────────────┬────────────┘
-                              ↕ UART
-                 ┌────────────▼────────────┐
-                 │      Arduino Mega       │
-                 │ Main Control and Safety │
-                 └────────────┬────────────┘
-                              │
-            ┌─────────────────┼──────────────────┐
-            │                 │                  │
-    ┌───────▼────────┐ ┌──────▼───────┐ ┌────────▼───────┐
-    │ HC-SR04 Sensors│ │   RPLIDAR    │ │    MPU6050     │
-    │       ×3       │ │  360° Scan   │ │      IMU       │
-    └────────────────┘ └──────────────┘ └────────────────┘
-                              │
-                 ┌────────────▼────────────┐
-                 │   4 × BTS7960 Drivers   │
-                 └────────────┬────────────┘
-                              │
-                 ┌────────────▼────────────┐
-                 │   4 × DC Gear Motors    │
-                 │    Mecanum Wheel Set    │
-                 └─────────────────────────┘
-
-System flow: Sensors → Arduino Mega → Motor drivers → Four mecanum motors. The host computer ↔ ESP32 ↔ Arduino Mega communication path is planned and must be verified during integration.
-
-Power System Diagram
-
-       ┌────────────────────┐
-       │ 3S Li-ion Battery   │
-       │ 11.1 V nominal      │
-       └─────────┬──────────┘
-                 │
-       ┌─────────▼──────────┐
-       │ Power Distribution │
-       └─────────┬──────────┘
-                 │
-          ┌──────┴────────┐
-          │               │
-  ┌───────▼────────┐ ┌────▼────────────┐
-  │ Motor Drivers  │ │ DC-DC Buck      │
-  │ 4 × BTS7960    │ │ Converters ×2   │
-  └───────┬────────┘ └────┬────────────┘
-          │               │
-  ┌───────▼────────┐ ┌────▼────────────┐
-  │ 4 DC Motors    │ │ Control and     │
-  │                │ │ Sensor Electronics│
-  └────────────────┘ └─────────────────┘
-
-The final power distribution must match the actual voltage and current ratings of every component. Add appropriate protection and verify the emergency-stop arrangement before physical testing.
-
-Main Arduino Mega pin map
-
-Signal / component
-
-Mega connection
-
-Left, front and right HC-SR04 sensors
-
-Digital pins 22–27 (trigger/echo pairs)
-
-ESP32 serial connection
-
-UART1: pins 18 (TX1) and 19 (RX1)
-
-RPLiDAR serial connection
-
-UART2: pins 16 (TX2) and 17 (RX2)
-
-MPU6050 and I²C LCD
-
-SDA pin 20, SCL pin 21
-
-Front-left motor driver
-
-PWM pin 2, direction pin 30
-
-Front-right motor driver
-
-PWM pin 3, direction pin 31
-
-Rear-left motor driver
-
-PWM pin 4, direction pin 32
-
-Rear-right motor driver
-
-PWM pin 5, direction pin 33
-
-Buzzer
-
-Pin 8
-
-Emergency-stop logic input
-
-Pin 48
-
-Battery voltage sense
-
-A0 through a voltage divider
-
-These are the planned connections from the project design. Verify them against sketch.ino and diagram.json before assembling the hardware. Use a suitable regulated supply and a common ground where required. Do not connect the battery directly to 5 V logic pins.
-
-Circuit Diagrams, Connections and Architecture Files
-
-The circuit diagrams and pin map should be checked against the actual Wokwi layout and Arduino sketch. If a component is not present in the current Wokwi circuit, treat its connection above as part of the proposed physical design rather than a tested simulation connection.
-
-Circuit and architecture files
-
-circuit diagram/ — circuit images and connection references, if present.
-
-wokiwi design(hardware)/diagram.json — Wokwi circuit layout.
-
-wokiwi design(hardware)/sketch.ino — Arduino code for the Wokwi design.
-
-3. How to Run and Test the Simulations
-
-A. 3D browser simulation
-
-File: Simulations/simulation-3d.html (or Simulations/index.html)
-
-Open the HTML file in Chrome, Edge, Firefox or another modern browser.
-
-If it does not load correctly, open a terminal in the Simulations folder and run:
-
-python -m http.server 8000
-
-Visit http://localhost:8000/ in your browser.
-
-Try the target movement, manual drive controls (W, A, S, D) and obstacle-avoidance scenarios provided by the simulation.
-
-B. 2D browser simulation
-
-File: Simulations/simulation-2d.html
-
-Open the file in a browser.
-
-Run the simulation and move the available obstacles to observe how the simulated robot responds.
-
-C. Wokwi circuit
-
-Files: wokiwi design(hardware)/sketch.ino and wokiwi design(hardware)/diagram.json
-
-Open Wokwi and create an Arduino Mega 2560 project.
-
-Copy the contents of sketch.ino into the code editor.
-
-Replace the circuit diagram with the contents of diagram.json.
-
-Start the simulation and open the Serial Monitor at the baud rate set in the sketch.
-
-Test the three ultrasonic sensor inputs at clear distances, near an obstacle, and at the stop threshold. Also test the emergency-stop input if it is implemented in the current diagram.
-
-Use the outputs actually shown by the current simulation as the test result; expected behaviour can vary with the code and components supported by Wokwi.
-
-4. Proposed Physical Implementation
-
-The planned build uses a rectangular chassis with four geared DC motors and mecanum wheels. The battery is intended to sit low on the chassis, with motor drivers near the motors. The Arduino Mega, ESP32, IMU and LCD will be mounted separately from high-current motor wiring where practical. The RPLiDAR should be mounted high enough to get a clear view around the robot, and the ultrasonic sensors should face left, front and right.
-
-The Arduino is intended to manage wheel control and basic obstacle-stop behaviour. The ESP32 is intended to handle communication with the host computer. Before a full test, assemble and check the power system, test each sensor and motor separately, verify the emergency stop, and then test movement at low speed.
-
-5. Limitations and Next Steps
-
-The browser simulations demonstrate only the behaviours implemented in their code. Wokwi may not reproduce every physical component or its real electrical behaviour. Simulations cannot fully account for wheel traction, motor load, battery voltage drop, sensor noise, wiring errors or calibration.
-
-Next steps:
-
-Verify component ratings, pin assignments and wiring.
-
-Test the power supply and emergency stop before running the motors.
-
-Test each sensor and motor individually.
-
-Calibrate the sensors and motor directions.
-
-Test obstacle detection and movement with the complete physical robot.
-
-Repository Structure
-
+```text
 MECANUM_ROBO/
 ├── README.md
 ├── Documentation/
 ├── Simulations/
+│   ├── index.html
 │   ├── simulation-3d.html
 │   └── simulation-2d.html
 ├── circuit diagram/
@@ -315,3 +188,6 @@ MECANUM_ROBO/
 └── wokiwi design(hardware)/
     ├── sketch.ino
     └── diagram.json
+```
+
+*Note: Folder and file names may differ slightly. Use the actual names shown in the repository.*
