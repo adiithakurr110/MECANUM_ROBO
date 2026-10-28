@@ -1,0 +1,423 @@
+{
+  "version": 1,
+  "author": "TECH MINIONS - MECAVISION simplified demo",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-arduino-mega",
+      "id": "mega",
+      "top": 100,
+      "left": 180,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-hc-sr04",
+      "id": "usL",
+      "top": -120,
+      "left": 0,
+      "attrs": {
+        "distance": "120"
+      }
+    },
+    {
+      "type": "wokwi-hc-sr04",
+      "id": "usF",
+      "top": -120,
+      "left": 200,
+      "attrs": {
+        "distance": "100"
+      }
+    },
+    {
+      "type": "wokwi-hc-sr04",
+      "id": "usR",
+      "top": -120,
+      "left": 400,
+      "attrs": {
+        "distance": "140"
+      }
+    },
+    {
+      "type": "wokwi-lcd2004",
+      "id": "lcd",
+      "top": -130,
+      "left": 620,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-mpu6050",
+      "id": "imu",
+      "top": 40,
+      "left": 700,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-buzzer",
+      "id": "buzzer",
+      "top": 150,
+      "left": 700,
+      "attrs": {
+        "volume": "0.1"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "estop",
+      "top": 240,
+      "left": 700,
+      "attrs": {
+        "color": "red",
+        "label": "E-STOP"
+      }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "batPot",
+      "top": 340,
+      "left": 700,
+      "attrs": {
+        "label": "Battery 12V"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "pwmFL",
+      "top": 420,
+      "left": 50,
+      "attrs": {
+        "color": "blue",
+        "label": "PWM FL (Pin 2)"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "dirFL",
+      "top": 480,
+      "left": 50,
+      "attrs": {
+        "color": "green",
+        "label": "DIR FL (Pin 30)"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "pwmFR",
+      "top": 420,
+      "left": 170,
+      "attrs": {
+        "color": "blue",
+        "label": "PWM FR (Pin 3)"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "dirFR",
+      "top": 480,
+      "left": 170,
+      "attrs": {
+        "color": "green",
+        "label": "DIR FR (Pin 31)"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "pwmRL",
+      "top": 420,
+      "left": 290,
+      "attrs": {
+        "color": "blue",
+        "label": "PWM RL (Pin 4)"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "dirRL",
+      "top": 480,
+      "left": 290,
+      "attrs": {
+        "color": "green",
+        "label": "DIR RL (Pin 32)"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "pwmRR",
+      "top": 420,
+      "left": 410,
+      "attrs": {
+        "color": "blue",
+        "label": "PWM RR (Pin 5)"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "dirRR",
+      "top": 480,
+      "left": 410,
+      "attrs": {
+        "color": "green",
+        "label": "DIR RR (Pin 33)"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "mega:5V",
+      "usL:VCC",
+      "red",
+      []
+    ],
+    [
+      "mega:GND.1",
+      "usL:GND",
+      "black",
+      []
+    ],
+    [
+      "mega:22",
+      "usL:TRIG",
+      "orange",
+      []
+    ],
+    [
+      "mega:23",
+      "usL:ECHO",
+      "yellow",
+      []
+    ],
+    [
+      "mega:5V",
+      "usF:VCC",
+      "red",
+      []
+    ],
+    [
+      "mega:GND.1",
+      "usF:GND",
+      "black",
+      []
+    ],
+    [
+      "mega:24",
+      "usF:TRIG",
+      "orange",
+      []
+    ],
+    [
+      "mega:25",
+      "usF:ECHO",
+      "yellow",
+      []
+    ],
+    [
+      "mega:5V",
+      "usR:VCC",
+      "red",
+      []
+    ],
+    [
+      "mega:GND.1",
+      "usR:GND",
+      "black",
+      []
+    ],
+    [
+      "mega:26",
+      "usR:TRIG",
+      "orange",
+      []
+    ],
+    [
+      "mega:27",
+      "usR:ECHO",
+      "yellow",
+      []
+    ],
+    [
+      "mega:5V",
+      "lcd:VCC",
+      "red",
+      []
+    ],
+    [
+      "mega:GND.2",
+      "lcd:GND",
+      "black",
+      []
+    ],
+    [
+      "mega:20",
+      "lcd:SDA",
+      "blue",
+      []
+    ],
+    [
+      "mega:21",
+      "lcd:SCL",
+      "cyan",
+      []
+    ],
+    [
+      "mega:5V",
+      "imu:VCC",
+      "red",
+      []
+    ],
+    [
+      "mega:GND.2",
+      "imu:GND",
+      "black",
+      []
+    ],
+    [
+      "mega:20",
+      "imu:SDA",
+      "blue",
+      []
+    ],
+    [
+      "mega:21",
+      "imu:SCL",
+      "cyan",
+      []
+    ],
+    [
+      "mega:8",
+      "buzzer:2",
+      "purple",
+      []
+    ],
+    [
+      "mega:GND.2",
+      "buzzer:1",
+      "black",
+      []
+    ],
+    [
+      "mega:48",
+      "estop:1.1",
+      "red",
+      []
+    ],
+    [
+      "mega:GND.3",
+      "estop:2.1",
+      "black",
+      []
+    ],
+    [
+      "mega:5V",
+      "batPot:VCC",
+      "red",
+      []
+    ],
+    [
+      "mega:GND.3",
+      "batPot:GND",
+      "black",
+      []
+    ],
+    [
+      "mega:A0",
+      "batPot:SIG",
+      "green",
+      []
+    ],
+    [
+      "mega:2",
+      "pwmFL:A",
+      "blue",
+      []
+    ],
+    [
+      "mega:GND.4",
+      "pwmFL:C",
+      "black",
+      []
+    ],
+    [
+      "mega:30",
+      "dirFL:A",
+      "green",
+      []
+    ],
+    [
+      "mega:GND.4",
+      "dirFL:C",
+      "black",
+      []
+    ],
+    [
+      "mega:3",
+      "pwmFR:A",
+      "blue",
+      []
+    ],
+    [
+      "mega:GND.4",
+      "pwmFR:C",
+      "black",
+      []
+    ],
+    [
+      "mega:31",
+      "dirFR:A",
+      "green",
+      []
+    ],
+    [
+      "mega:GND.4",
+      "dirFR:C",
+      "black",
+      []
+    ],
+    [
+      "mega:4",
+      "pwmRL:A",
+      "blue",
+      []
+    ],
+    [
+      "mega:GND.5",
+      "pwmRL:C",
+      "black",
+      []
+    ],
+    [
+      "mega:32",
+      "dirRL:A",
+      "green",
+      []
+    ],
+    [
+      "mega:GND.5",
+      "dirRL:C",
+      "black",
+      []
+    ],
+    [
+      "mega:5",
+      "pwmRR:A",
+      "blue",
+      []
+    ],
+    [
+      "mega:GND.5",
+      "pwmRR:C",
+      "black",
+      []
+    ],
+    [
+      "mega:33",
+      "dirRR:A",
+      "green",
+      []
+    ],
+    [
+      "mega:GND.5",
+      "dirRR:C",
+      "black",
+      []
+    ]
+  ]
+}

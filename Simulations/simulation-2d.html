@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MECAVISION · 2D Autonomous Mecanum Robot Simulator</title>
+<style>
+:root {
+  --bg: #070a11;
+  --card: #0e1422ee;
+  --card-border: #1e293d;
+  --fg: #e2e8f0;
+  --muted: #8492a6;
+  --accent: #00e5ff;
+  --accent-glow: rgba(0, 229, 255, 0.25);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --font-main: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Consolas', 'Courier New', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-main);
+  font-size: 13px;
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  height: 48px;
+  background: #090e18;
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 100;
+  flex-shrink: 0;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.logo-badge {
+  background: linear-gradient(135deg, #00e5ff, #3b82f6);
+  color: #000;
+  font-weight: 900;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.title-group h1 { font-size: 15px; font-weight: 700; color: #fff; }
+.title-group p { font-size: 11px; color: var(--muted); }
+.header-actions { display: flex; align-items: center; gap: 8px; }
+
+.app-container {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  overflow: hidden;
+}
+@media (max-width: 1080px) { .app-container { grid-template-columns: minmax(0, 1fr) 300px; } }
+@media (max-width: 820px) { .app-container { grid-template-columns: 1fr; grid-template-rows: 60vh 40vh; } }
+
+.viewport-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #060910;
+}
+canvas#c {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: crosshair;
+}
+
+.viewport-toolbar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  z-index: 20;
+}
+.btn {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(8px);
+  transition: all 0.15s ease;
+}
+.btn:hover {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+.btn.primary { background: linear-gradient(135deg, #00b4d8, #0077b6); border-color: #00e5ff; }
+.btn.danger { background: linear-gradient(135deg, #dc2626, #991b1b); border-color: #ef4444; }
+.btn.active { background: var(--accent); color: #000; border-color: #fff; }
+select.btn { padding-right: 24px; }
+
+/* Status Chips */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.chip-dot { width: 6px; height: 6px; border-radius: 50%; }
+.chip.idle { background: #1e293b; color: #94a3b8; }
+.chip.idle .chip-dot { background: #94a3b8; }
+.chip.search { background: #0369a1; color: #38bdf8; }
+.chip.search .chip-dot { background: #38bdf8; animation: pulse 1s infinite; }
+.chip.approach { background: #15803d; color: #4ade80; }
+.chip.approach .chip-dot { background: #4ade80; }
+.chip.avoid { background: #b45309; color: #fbbf24; }
+.chip.avoid .chip-dot { background: #fbbf24; animation: flash 0.4s infinite; }
+.chip.arrived { background: #065f46; color: #34d399; }
+.chip.arrived .chip-dot { background: #34d399; }
+.chip.estop { background: #991b1b; color: #f87171; }
+.chip.safety { background: #dc2626; color: #fff; box-shadow: 0 0 10px #ef4444; }
+
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+@keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.1; } }
+
+aside.sidebar {
+  background: var(--card);
+  border-left: 1px solid var(--card-border);
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.panel {
+  background: #090e18;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 12px;
+}
+.panel-header {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.panel-header .badge { font-size: 10px; color: var(--accent); font-family: var(--font-mono); }
+
+.motor-grid { display: flex; flex-direction: column; gap: 8px; }
+.motor-item { display: flex; flex-direction: column; gap: 3px; }
+.motor-label-row { display: flex; justify-content: space-between; font-size: 11px; }
+.motor-name { color: #cbd5e1; }
+.motor-val { font-family: var(--font-mono); font-weight: 700; }
+.motor-bar-bg { height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; }
+.motor-bar-fill { height: 100%; width: 0%; border-radius: 3px; transition: width 0.05s ease; }
+
+.sensor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.sensor-card { background: #0d1422; border: 1px solid #1e293b; border-radius: 6px; padding: 6px 8px; }
+.sensor-label { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+.sensor-value { font-size: 14px; font-weight: 700; font-family: var(--font-mono); color: #fff; margin-top: 2px; }
+
+.event-log {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #94a3b8;
+  background: #050811;
+  border: 1px solid #162032;
+  border-radius: 6px;
+  padding: 8px;
+  height: 90px;
+  overflow-y: auto;
+  line-height: 1.45;
+}
+.log-entry { margin-bottom: 2px; }
+
+.teleop-box { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; max-width: 140px; margin: 6px auto; }
+.teleop-btn {
+  background: #1e293b; border: 1px solid #334155; color: #fff; font-size: 13px; font-weight: bold;
+  height: 36px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.teleop-btn:active { background: var(--accent); color: #000; }
+.shortcuts-info { font-size: 10px; color: var(--muted); line-height: 1.4; border-top: 1px solid #1e293b; padding-top: 8px; }
+kbd { background: #1e293b; border: 1px solid #334155; border-radius: 3px; padding: 1px 4px; color: #fff; font-family: var(--font-mono); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="logo-badge">MECAVISION 2D</span>
+    <div class="title-group">
+      <h1>Autonomous Mecanum AMR · 2D Kinematics Testbed</h1>
+      <p>Interactive Physics Sandbox · Drag Obstacles · 360° LiDAR · 4-Wheel Mecanum IK</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <div id="modePill" class="chip idle"><span class="chip-dot"></span><span id="stateText">IDLE</span></div>
+    <div id="safetyAlert" class="chip safety" style="display:none;">SAFETY OVERRIDE &lt;25cm</div>
+    <button class="btn" id="audioToggle">🔊 Sound ON</button>
+  </div>
+</header>
+
+<div class="app-container">
+  <div class="viewport-wrap">
+    <canvas id="c"></canvas>
+    <div class="viewport-toolbar">
+      <select id="targetSelect" class="btn">
+        <option value="chair">Target: Executive Chair</option>
+        <option value="person">Target: Walking Person</option>
+      </select>
+      <button class="btn primary" id="btnGo">▶ Go to Target</button>
+      <button class="btn" id="btnPause">⏸ Pause</button>
+      <button class="btn danger" id="btnEstop">🛑 E-STOP</button>
+      <button class="btn" id="btnReset">↺ Reset</button>
+      <button class="btn" id="btnShuffle">🔀 Shuffle Arena</button>
+      <select id="speedSelect" class="btn">
+        <option value="1">1x Speed</option>
+        <option value="2">2x Speed</option>
+        <option value="4">4x Speed</option>
+      </select>
+      <button class="btn" id="btnManual">🎮 Manual Drive: OFF</button>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="panel">
+      <div class="panel-header"><span>Navigation Telemetry</span><span class="badge">50 Hz</span></div>
+      <div class="sensor-grid">
+        <div class="sensor-card"><div class="sensor-label">Run Time</div><div class="sensor-value" id="valTime">0.0 s</div></div>
+        <div class="sensor-card"><div class="sensor-label">Odometry</div><div class="sensor-value" id="valDist">0.0 m</div></div>
+        <div class="sensor-card"><div class="sensor-label">Target Dist</div><div class="sensor-value" id="valTgtDist">0.0 m</div></div>
+        <div class="sensor-card"><div class="sensor-label">Avoidances</div><div class="sensor-value" id="valAvoid">0</div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header"><span>Sensor Readings</span><span class="badge">HC-SR04 & LiDAR</span></div>
+      <div class="sensor-grid">
+        <div class="sensor-card"><div class="sensor-label">US Left</div><div class="sensor-value" id="valUsL">- cm</div></div>
+        <div class="sensor-card"><div class="sensor-label">US Front</div><div class="sensor-value" id="valUsF">- cm</div></div>
+        <div class="sensor-card"><div class="sensor-label">US Right</div><div class="sensor-value" id="valUsR">- cm</div></div>
+        <div class="sensor-card"><div class="sensor-label">LiDAR Nearest</div><div class="sensor-value" id="valLidar">- cm</div></div>
+      </div>
+      <div style="margin-top:8px; font-size:11px; display:flex; justify-content:space-between;">
+        <span style="color:var(--muted);">Camera Object Detection:</span>
+        <b id="valCamera" style="color:var(--accent);">Detecting...</b>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header"><span>4x BTS7960 Drivers</span><span class="badge">PWM + DIR</span></div>
+      <div class="motor-grid">
+        <div class="motor-item">
+          <div class="motor-label-row"><span class="motor-name">M1 · Front Left</span><span class="motor-val" id="m1Val">0%</span></div>
+          <div class="motor-bar-bg"><div class="motor-bar-fill" id="m1Bar"></div></div>
+        </div>
+        <div class="motor-item">
+          <div class="motor-label-row"><span class="motor-name">M2 · Front Right</span><span class="motor-val" id="m2Val">0%</span></div>
+          <div class="motor-bar-bg"><div class="motor-bar-fill" id="m2Bar"></div></div>
+        </div>
+        <div class="motor-item">
+          <div class="motor-label-row"><span class="motor-name">M3 · Rear Left</span><span class="motor-val" id="m3Val">0%</span></div>
+          <div class="motor-bar-bg"><div class="motor-bar-fill" id="m3Bar"></div></div>
+        </div>
+        <div class="motor-item">
+          <div class="motor-label-row"><span class="motor-name">M4 · Rear Right</span><span class="motor-val" id="m4Val">0%</span></div>
+          <div class="motor-bar-bg"><div class="motor-bar-fill" id="m4Bar"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="manualPanel" style="display:none;">
+      <div class="panel-header"><span>Manual Teleoperation</span><span class="badge">WASD / QE</span></div>
+      <div class="teleop-box">
+        <button class="teleop-btn" id="btnRotL">↺ Q</button>
+        <button class="teleop-btn" id="btnFwd">▲ W</button>
+        <button class="teleop-btn" id="btnRotR">↻ E</button>
+        <button class="teleop-btn" id="btnStrafeL">◄ A</button>
+        <button class="teleop-btn" id="btnStop" style="background:#7f1d1d;">■</button>
+        <button class="teleop-btn" id="btnStrafeR">► D</button>
+        <div></div>
+        <button class="teleop-btn" id="btnRev">▼ S</button>
+        <div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header"><span>Event Log</span><span class="badge">Diagnostic Stream</span></div>
+      <div class="event-log" id="eventLog">
+        <div class="log-entry">[0.0s] 2D Physics Simulator ready.</div>
+      </div>
+    </div>
+
+    <div class="shortcuts-info">
+      <b>Interactive Sandbox:</b><br>
+      • <kbd>Click & Drag</kbd> ANY obstacle or target in real-time!<br>
+      • <kbd>W</kbd>/<kbd>A</kbd>/<kbd>S</kbd>/<kbd>D</kbd> drive & strafe · <kbd>Q</kbd>/<kbd>E</kbd> rotate · <kbd>Space</kbd> E-STOP.
+    </div>
+  </aside>
+</div>
+
+<script>
+const W = 960, H = 600, S = 1.5, R = 30;
+const VM = 140, WM = 2.6;
+const USM = 225, LM = 300;
+const STOP = 25 * S, AVD = 42 * S, ARR = 48 * S;
+
+const $ = id => document.getElementById(id);
+const cv = $('c'), g = cv.getContext('2d');
+const ang = a => Math.atan2(Math.sin(a), Math.cos(a));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+let obs = [], L = [], chair, person, tg;
+let bot = { x: 80, y: 300, th: 0, wh: [0, 0, 0, 0] };
+let run = { t: 0, st: 0, dist: 0, col: 0, avoided: 0, seen: -9, prev: 'SEARCH', side: 1, pass: 0, clear: 0, blk: 0 };
+let state = 'IDLE', sn = { f: USM, l: USM, r: USM, lid: [] };
+let act = 0, paused = false, sp = 1, estop = false, manualMode = false;
+let trail = [], lg = [], vc = 0, vp = 0;
+let soundEnabled = true, audioCtx = null;
+
+const keys = { w: false, a: false, s: false, d: false, q: false, e: false };
+
+function playTone(freq, type, duration, vol = 0.08) {
+  if (!soundEnabled) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + duration);
+  } catch (e) {}
+}
+
+$('audioToggle').onclick = () => {
+  soundEnabled = !soundEnabled;
+  $('audioToggle').textContent = soundEnabled ? '🔊 Sound ON' : '🔇 Muted';
+};
+
+function layout(rand) {
+  chair = { t: 'chair', x: 870, y: 300, r: 26 };
+  person = { t: 'person', x: 440, y: 300, r: 20, vy: 45, a: 80, b: 520 };
+  if (!rand) {
+    obs = [
+      { t: 'box', x: 320, y: 130, w: 45, h: 220, label: 'Crate A' },
+      { t: 'barrel', x: 560, y: 440, r: 35, label: 'Bollard 1' },
+      { t: 'barrel', x: 650, y: 200, r: 35, label: 'Bollard 2' },
+      { t: 'box', x: 760, y: 380, w: 45, h: 190, label: 'Crate B' }
+    ];
+  } else {
+    obs = [];
+    const ct = o => o.r !== undefined ? [o.x, o.y] : [o.x + o.w / 2, o.y + o.h / 2];
+    const rr = o => o.r !== undefined ? o.r : Math.hypot(o.w, o.h) / 2;
+    for (let i = 0; i < 6; i++) {
+      for (let k = 0; k < 90; k++) {
+        const isCyl = Math.random() < 0.5;
+        const w = rnd(40, 110), h = rnd(40, 110);
+        const o = isCyl ? { t: 'barrel', x: rnd(230, 730), y: rnd(110, 490), r: rnd(25, 40) }
+                        : { t: 'box', x: rnd(220, 720), y: rnd(80, H - 80 - h), w, h };
+        const [cx, cy] = ct(o), r0 = rr(o);
+        if (Math.hypot(cx - 80, cy - 300) > r0 + 130 &&
+            Math.hypot(cx - 870, cy - 300) > r0 + 130 &&
+            obs.every(q => { const [qx, qy] = ct(q); return Math.hypot(cx - qx, cy - qy) > r0 + rr(q) + 130; })) {
+          obs.push(o); break;
+        }
+      }
+    }
+  }
+  L = [...obs, chair, person];
+  tg = $('targetSelect').value === 'person' ? person : chair;
+  log('Arena reset with ' + obs.length + ' obstacles.');
+}
+
+function hit(x, y, m, ign) {
+  if (x < m || y < m || x > W - m || y > H - m) return 1;
+  for (const o of L) {
+    if (o === ign) continue;
+    if (o.r !== undefined) {
+      if (Math.hypot(x - o.x, y - o.y) < o.r + m) return 1;
+    } else {
+      if (Math.hypot(x - clamp(x, o.x, o.x + o.w), y - clamp(y, o.y, o.y + o.h)) <= m) return 1;
+    }
+  }
+  return 0;
+}
+
+const ray = (x, y, a, mx, ign) => {
+  const dx = Math.cos(a), dy = Math.sin(a);
+  for (let d = 0; d < mx; d += 2.5) if (hit(x + dx * d, y + dy * d, 0, ign)) return d;
+  return mx;
+};
+
+function rd(al, mx, sp) {
+  let m = mx;
+  for (const da of sp) {
+    const a = bot.th - al + da;
+    m = Math.min(m, ray(bot.x + Math.cos(a) * R, bot.y + Math.sin(a) * R, a, mx));
+  }
+  return m;
+}
+
+function sense() {
+  const u = [0, Math.PI / 2, -Math.PI / 2].map(al => rd(al, USM, [-0.14, 0, 0.14]));
+  const lid = [];
+  for (let i = 0; i < 36; i++) {
+    const al = i * Math.PI / 18 - Math.PI;
+    lid.push([al, rd(al, LM, [0])]);
+  }
+  return { f: u[0], l: u[1], r: u[2], lid };
+}
+
+function vis(o) {
+  const dx = o.x - bot.x, dy = o.y - bot.y, d = Math.hypot(dx, dy), e = ang(Math.atan2(dy, dx) - bot.th);
+  return Math.abs(e) < 0.61 && d < 800 && ray(bot.x, bot.y, Math.atan2(dy, dx), d, o) >= d ? { d, e, conf: clamp(0.97 - d / 2800, 0.75, 0.98) } : 0;
+}
+
+function log(s) {
+  lg.push(`[${run.t.toFixed(1)}s] ${s}`);
+  if (lg.length > 7) lg.shift();
+  const el = $('eventLog');
+  el.innerHTML = lg.map(e => `<div class="log-entry">${e}</div>`).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+function go(s) {
+  if (s === 'AVOID') { run.prev = state; run.side = sn.l > sn.r ? 1 : -1; run.pass = 0; run.clear = 0; run.avoided++; playTone(480, 'triangle', 0.15, 0.07); }
+  if (s === 'ARRIVED') { playTone(660, 'sine', 0.2, 0.1); setTimeout(() => playTone(880, 'sine', 0.35, 0.12), 180); }
+  state = s; run.st = run.t;
+  log(`State -> ${s}`);
+}
+
+function plan(dt) {
+  if (manualMode) {
+    let vf = 0, vl = 0, w = 0;
+    if (keys.w) vf += 0.85; if (keys.s) vf -= 0.85;
+    if (keys.a) vl += 0.85; if (keys.d) vl -= 0.85;
+    if (keys.q) w -= 1.1; if (keys.e) w += 1.1;
+    return [vf, vl, w];
+  }
+  const T = tg === chair ? vc : vp;
+  let vf = 0, vl = 0, w = 0;
+  const F = sn.f, Lf = sn.l, Rt = sn.r;
+  if (T) run.seen = run.t;
+
+  if (state === 'SEARCH') {
+    if (T) { go('APPROACH'); return [0, 0, 0]; }
+    if ((run.t - run.st) % 8 < 5.4) w = 0.55;
+    else { if (F < AVD) { go('AVOID'); return [0, 0, 0]; } vf = 0.55; }
+  } else if (state === 'APPROACH') {
+    const dx = tg.x - bot.x, dy = tg.y - bot.y, gap = Math.hypot(dx, dy) - tg.r - R;
+    if (gap <= ARR) { go('ARRIVED'); return [0, 0, 0]; }
+    if (!T && run.t - run.seen > 2.2) { go('SEARCH'); return [0, 0, 0]; }
+    if (F < AVD) { go('AVOID'); return [0, 0, 0]; }
+    const e = ang(Math.atan2(dy, dx) - bot.th), k = Math.min(1, gap / 160 + 0.25);
+    vf = 0.95 * Math.cos(e) * k; vl = -0.95 * Math.sin(e) * k; w = clamp(1.7 * e, -1.2, 1.2);
+    if (Math.abs(e) > 1.1) vf = vl = 0;
+    if (Lf < 52) vl -= 0.45; if (Rt < 52) vl += 0.45;
+  } else if (state === 'AVOID') {
+    if (run.t - run.st > 8.5) { go(run.prev); return [0, 0, 0]; }
+    if (run.pass > 0 && F >= AVD) {
+      vf = 0.65; vl = 0.5 * run.side; run.pass -= dt;
+      if (run.pass <= 0) go(run.prev);
+    } else {
+      run.pass = 0;
+      if (Lf < AVD && Rt < AVD) { vf = -0.38; w = 0.85; }
+      else { vf = 0.12; vl = 0.75 * run.side; }
+      run.clear = F > 100 ? run.clear + dt : 0;
+      if (run.clear > 0.45) run.pass = 0.9;
+    }
+  }
+  return [vf, vl, w];
+}
+
+function step(dt) {
+  person.y += person.vy * dt;
+  if (person.y < person.a || person.y > person.b || Math.hypot(person.x - bot.x, person.y - bot.y) < person.r + R + 6) {
+    person.y -= person.vy * dt; person.vy *= -1;
+  }
+  sn = sense(); vc = vis(chair); vp = vis(person);
+  let c = [0, 0, 0]; act = 0;
+  if (!estop && (manualMode || (state !== 'IDLE' && state !== 'ARRIVED'))) { run.t += dt; c = plan(dt); }
+  let [vf, vl, w] = c;
+
+  // SAFETY REFLEX (<25 cm)
+  for (const [al, d] of [...sn.lid, [0, sn.f], [Math.PI / 2, sn.l], [-Math.PI / 2, sn.r]]) {
+    if (d < STOP) {
+      const cs = Math.cos(al), sI = Math.sin(al), p = vf * cs + vl * sI;
+      if (p > 0) { vf -= p * cs; vl -= p * sI; act = 1; }
+    }
+  }
+  if (act) playTone(280, 'square', 0.08, 0.04);
+
+  const ca = Math.cos(bot.th), sa = Math.sin(bot.th);
+  const mx = VM * dt * (vf * ca + vl * sa), my = VM * dt * (vf * sa - vl * ca);
+  if (mx || my) {
+    if (hit(bot.x + mx, bot.y + my, R)) { if (!run.blk) run.col++; run.blk = 1; }
+    else {
+      run.blk = 0; bot.x += mx; bot.y += my; run.dist += Math.hypot(mx, my);
+      const t = trail[trail.length - 1];
+      if (!t || Math.hypot(bot.x - t[0], bot.y - t[1]) > 5) {
+        trail.push([bot.x, bot.y]);
+        if (trail.length > 1200) trail.shift();
+      }
+    }
+  }
+  bot.th += WM * w * dt;
+  const wh = [vf - vl + w, vf + vl - w, vf + vl + w, vf - vl - w];
+  const m = Math.max(1, ...wh.map(Math.abs));
+  bot.wh = wh.map(v => v / m);
+}
+
+function resetBot() {
+  bot = { x: 80, y: 300, th: 0, wh: [0, 0, 0, 0] };
+  trail = []; state = 'IDLE'; lg = []; estop = false; paused = false; act = 0; manualMode = false;
+  run = { t: 0, st: 0, dist: 0, col: 0, avoided: 0, seen: -9, prev: 'SEARCH', side: 1, pass: 0, clear: 0, blk: 0 };
+  person.y = 300; person.vy = 45; sn = sense(); vc = vis(chair); vp = vis(person);
+  $('btnEstop').textContent = '🛑 E-STOP'; $('btnPause').textContent = '⏸ Pause';
+  $('btnManual').textContent = '🎮 Manual Drive: OFF'; $('btnManual').classList.remove('active');
+  $('manualPanel').style.display = 'none';
+  log('Robot reset.');
+}
+
+// ==========================================
+// INTERACTIVE DRAG-AND-DROP OBSTACLES
+// ==========================================
+let draggedObj = null, dragOffset = [0, 0];
+
+cv.addEventListener('pointerdown', e => {
+  const rect = cv.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (W / rect.width);
+  const my = (e.clientY - rect.top) * (H / rect.height);
+
+  for (const o of L) {
+    if (o.r !== undefined) {
+      if (Math.hypot(mx - o.x, my - o.y) <= o.r + 8) {
+        draggedObj = o;
+        dragOffset = [mx - o.x, my - o.y];
+        cv.setPointerCapture(e.pointerId);
+        break;
+      }
+    } else {
+      if (mx >= o.x && mx <= o.x + o.w && my >= o.y && my <= o.y + o.h) {
+        draggedObj = o;
+        dragOffset = [mx - o.x, my - o.y];
+        cv.setPointerCapture(e.pointerId);
+        break;
+      }
+    }
+  }
+});
+
+cv.addEventListener('pointermove', e => {
+  if (!draggedObj) return;
+  const rect = cv.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (W / rect.width);
+  const my = (e.clientY - rect.top) * (H / rect.height);
+  if (draggedObj.r !== undefined) {
+    draggedObj.x = clamp(mx - dragOffset[0], draggedObj.r + 10, W - draggedObj.r - 10);
+    draggedObj.y = clamp(my - dragOffset[1], draggedObj.r + 10, H - draggedObj.r - 10);
+  } else {
+    draggedObj.x = clamp(mx - dragOffset[0], 10, W - draggedObj.w - 10);
+    draggedObj.y = clamp(my - dragOffset[1], 10, H - draggedObj.h - 10);
+  }
+});
+
+cv.addEventListener('pointerup', () => { draggedObj = null; });
+
+// Canvas Drawing
+function draw2D() {
+  const rect = cv.getBoundingClientRect();
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  if (cv.width !== rect.width * dpr || cv.height !== rect.height * dpr) {
+    cv.width = rect.width * dpr; cv.height = rect.height * dpr;
+  }
+  g.setTransform(dpr * (rect.width / W), 0, 0, dpr * (rect.height / H), 0, 0);
+  g.clearRect(0, 0, W, H);
+
+  // High-Tech Metric Grid
+  g.strokeStyle = '#141c2b'; g.lineWidth = 1;
+  g.beginPath();
+  for (let x = 0; x <= W; x += 60) { g.moveTo(x, 0); g.lineTo(x, H); }
+  for (let y = 0; y <= H; y += 60) { g.moveTo(0, y); g.lineTo(W, y); }
+  g.stroke();
+
+  // Trail
+  g.strokeStyle = 'rgba(0, 229, 255, 0.65)'; g.lineWidth = 2.5;
+  g.beginPath();
+  trail.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]));
+  g.stroke();
+
+  // Obstacles
+  for (const o of obs) {
+    g.fillStyle = o.t === 'barrel' ? '#0369a1' : '#78350f';
+    g.strokeStyle = o.t === 'barrel' ? '#38bdf8' : '#d97706';
+    g.lineWidth = 2;
+    g.beginPath();
+    if (o.r !== undefined) g.arc(o.x, o.y, o.r, 0, Math.PI * 2);
+    else g.rect(o.x, o.y, o.w, o.h);
+    g.fill(); g.stroke();
+  }
+
+  // Chair Target
+  g.fillStyle = '#b45309'; g.fillRect(chair.x - 21, chair.y - 21, 42, 42);
+  g.fillStyle = '#f59e0b'; g.fillRect(chair.x + 13, chair.y - 21, 8, 42);
+  g.strokeStyle = '#fbbf24'; g.strokeRect(chair.x - 21, chair.y - 21, 42, 42);
+
+  // Walking Pedestrian Target
+  g.fillStyle = '#0d9488'; g.beginPath(); g.arc(person.x, person.y, person.r, 0, Math.PI * 2); g.fill();
+  g.strokeStyle = '#2dd4bf'; g.lineWidth = 2; g.stroke();
+
+  // Target Lock Indicator
+  if (state !== 'IDLE') {
+    g.strokeStyle = '#00ff88'; g.lineWidth = 2; g.setLineDash([6, 4]);
+    g.beginPath(); g.arc(tg.x, tg.y, tg.r + 12 + Math.sin(performance.now() / 200) * 3, 0, Math.PI * 2); g.stroke();
+    g.setLineDash([]);
+  }
+
+  // Camera Vision FOV Cone (70°)
+  g.save(); g.translate(bot.x, bot.y); g.rotate(bot.th);
+  g.fillStyle = 'rgba(0, 229, 255, 0.12)';
+  g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, 280, -0.61, 0.61); g.fill();
+  g.restore();
+
+  // 360° RPLiDAR Laser Hits
+  g.fillStyle = '#00ff88';
+  for (const [al, d] of sn.lid) {
+    if (d < LM) {
+      const a = bot.th - al;
+      g.fillRect(bot.x + Math.cos(a) * (R + d) - 2, bot.y + Math.sin(a) * (R + d) - 2, 4, 4);
+    }
+  }
+
+  // 3x Ultrasonic Rangefinder Beams (Left, Front, Right)
+  for (const [al, d] of [[0, sn.f], [Math.PI / 2, sn.l], [-Math.PI / 2, sn.r]]) {
+    const a = bot.th - al;
+    g.strokeStyle = d < STOP ? '#ef4444' : d < AVD ? '#f59e0b' : '#10b981';
+    g.lineWidth = 2.5;
+    g.beginPath();
+    g.moveTo(bot.x + Math.cos(a) * R, bot.y + Math.sin(a) * R);
+    g.lineTo(bot.x + Math.cos(a) * (R + d), bot.y + Math.sin(a) * (R + d));
+    g.stroke();
+  }
+
+  // Robot Body (CAD-styled Mecanum AMR)
+  g.save(); g.translate(bot.x, bot.y); g.rotate(bot.th);
+  // Chassis
+  g.fillStyle = '#1e293b'; g.fillRect(-29, -23, 58, 46);
+  g.strokeStyle = '#f59e0b'; g.lineWidth = 2; g.strokeRect(-29, -23, 58, 46);
+  // 4 Mecanum Wheels
+  [[18, -26], [18, 26], [-18, -26], [-18, 26]].forEach(([wx, wy], i) => {
+    const v = bot.wh[i];
+    g.fillStyle = v > 0.05 ? '#10b981' : (v < -0.05 ? '#ef4444' : '#64748b');
+    g.fillRect(wx - 9, wy - 4.5, 18, 9);
+    g.strokeStyle = '#0f172a'; g.lineWidth = 1; g.strokeRect(wx - 9, wy - 4.5, 18, 9);
+  });
+  // Heading pointer
+  g.fillStyle = '#00e5ff'; g.beginPath(); g.moveTo(38, 0); g.lineTo(26, -9); g.lineTo(26, 9); g.fill();
+  // LiDAR puck center
+  g.fillStyle = '#0f172a'; g.beginPath(); g.arc(-5, 0, 8, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#ef4444'; g.beginPath(); g.arc(-5, 0, 3, 0, Math.PI * 2); g.fill();
+
+  // Safety Reflex Ring
+  if (act) {
+    g.strokeStyle = '#ef4444'; g.lineWidth = 3; g.beginPath(); g.arc(0, 0, R + 9, 0, Math.PI * 2); g.stroke();
+  }
+  g.restore();
+}
+
+function updateUI() {
+  const s = estop ? 'E-STOP' : (manualMode ? 'MANUAL' : state);
+  $('stateText').textContent = s;
+  $('modePill').className = `chip ${estop ? 'estop' : s.toLowerCase()}`;
+  $('safetyAlert').style.display = act ? 'inline-flex' : 'none';
+
+  const dToTarget = Math.hypot(tg.x - bot.x, tg.y - bot.y) / 150;
+  $('valTgtDist').textContent = `${dToTarget.toFixed(2)} m`;
+  $('valDist').textContent = `${(run.dist / 150).toFixed(2)} m`;
+  $('valTime').textContent = `${run.t.toFixed(1)} s`;
+  $('valAvoid').textContent = run.avoided;
+
+  const toCm = v => (v >= USM - 1 ? '>150' : Math.round(v / S));
+  $('valUsL').textContent = `${toCm(sn.l)} cm`;
+  $('valUsF').textContent = `${toCm(sn.f)} cm`;
+  $('valUsR').textContent = `${toCm(sn.r)} cm`;
+  $('valLidar').textContent = `${Math.round(Math.min(...sn.lid.map(x => x[1])) / S)} cm`;
+
+  const detected = [];
+  if (vc) detected.push(`Chair (${Math.round((vc.conf || 0.94) * 100)}%)`);
+  if (vp) detected.push(`Person (${Math.round((vp.conf || 0.95) * 100)}%)`);
+  $('valCamera').textContent = detected.join(', ') || 'No Target';
+
+  bot.wh.forEach((v, i) => {
+    const pct = Math.round(Math.abs(v) * 100);
+    $(`m${i+1}Val`).textContent = `${pct}% ${v > 0.04 ? 'FWD' : (v < -0.04 ? 'REV' : 'IDLE')}`;
+    const b = $(`m${i+1}Bar`);
+    b.style.width = `${pct}%`;
+    b.style.background = v < 0 ? 'var(--danger)' : 'var(--success)';
+  });
+}
+
+// Binds
+$('targetSelect').onchange = e => { tg = e.target.value === 'person' ? person : chair; };
+$('btnGo').onclick = () => { if (state !== 'IDLE') resetBot(); manualMode = false; $('manualPanel').style.display = 'none'; go('SEARCH'); };
+$('btnPause').onclick = () => { paused = !paused; $('btnPause').textContent = paused ? '▶ Resume' : '⏸ Pause'; };
+$('btnEstop').onclick = () => { estop = !estop; $('btnEstop').textContent = estop ? '🔓 Release' : '🛑 E-STOP'; if (estop) playTone(220, 'sawtooth', 0.4, 0.15); };
+$('btnReset').onclick = () => { layout(0); resetBot(); };
+$('btnShuffle').onclick = () => { layout(1); resetBot(); };
+$('speedSelect').onchange = e => { sp = +e.target.value; };
+$('btnManual').onclick = () => {
+  manualMode = !manualMode;
+  $('btnManual').classList.toggle('active', manualMode);
+  $('btnManual').textContent = manualMode ? '🎮 Manual Drive: ON' : '🎮 Manual Drive: OFF';
+  $('manualPanel').style.display = manualMode ? 'block' : 'none';
+  state = manualMode ? 'MANUAL' : 'IDLE';
+};
+
+window.addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (k in keys) keys[k] = true;
+  if (e.code === 'Space') { $('btnEstop').click(); e.preventDefault(); }
+  if (k === 'r') $('btnReset').click();
+});
+window.addEventListener('keyup', e => {
+  const k = e.key.toLowerCase();
+  if (k in keys) keys[k] = false;
+});
+
+let lastTime = 0;
+function loop(ts) {
+  const dt = Math.min(0.05, (ts - lastTime) / 1000 || 0);
+  lastTime = ts;
+  if (!paused) for (let i = 0; i < sp; i++) step(dt);
+  draw2D();
+  updateUI();
+  requestAnimationFrame(loop);
+}
+
+layout(0);
+resetBot();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
