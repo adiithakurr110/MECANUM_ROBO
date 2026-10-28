@@ -1,66 +1,67 @@
-# MECAVISION – Vision-Based Autonomous Mecanum Robot
+# MECAVISION – Autonomous Mecanum Robot
 
 ## About the Project
 
-MECAVISION is an autonomous robot project designed to detect obstacles and navigate its surroundings. The project combines sensors, motor drivers, and a control system to explore autonomous movement using mecanum wheels.
+MECAVISION is an autonomous robot project focused on obstacle detection and navigation. It uses sensors to detect nearby obstacles and a mecanum-wheel drive system for movement in different directions. The project is being developed through circuit design and simulation before physical implementation.
 
-## Project Objectives
+## 1. Hardware Components
 
-* Detect nearby obstacles using sensors.
-* Support autonomous movement and obstacle avoidance.
-* Explore omnidirectional movement using mecanum wheels.
-* Test the system through simulation before physical implementation.
+| Component                  | Purpose                                 |
+| -------------------------- | --------------------------------------- |
+| Arduino Mega 2560          | Main controller for sensors and motors  |
+| ESP32                      | Additional processing and communication |
+| RPLIDAR A1M8               | Scans the surroundings for navigation   |
+| HC-SR04 Ultrasonic Sensors | Measures nearby obstacles               |
+| BTS7960 Motor Drivers      | Controls the DC motors                  |
+| Mecanum Wheels             | Allow movement in multiple directions   |
+| MPU6050                    | Measures motion and orientation         |
+| I2C LCD                    | Displays system information             |
+| Buzzer and Emergency Stop  | Provides alerts and a safety stop       |
 
-## Repository Structure
+The planned power system uses a battery and voltage converters. Component voltage ratings and wiring should be checked before connecting the physical hardware.
 
-* `Documentation/` – Project documentation and technical details.
-* `Simulations/` – Simulation files and testing resources.
-* `circuit diagram/` – Circuit diagrams and connection references.
-* `presentation/` – Project presentation materials.
-* `wokwi design(hardware)/` – Wokwi hardware design and simulation files.
+## 2. Circuit and System Architecture
 
-## Hardware Components
+The circuit design connects the sensors, controllers, motor drivers and other components. The ultrasonic sensors detect nearby obstacles, while the RPLIDAR is intended to provide information about the surrounding area. The controller processes sensor readings and sends commands to the motor drivers.
 
-The planned hardware includes:
+**System flow:**
 
-* Arduino Mega 2560
-* ESP32
-* RPLIDAR A1M8
-* HC-SR04 ultrasonic sensors
-* BTS7960 motor drivers
-* DC motors with mecanum wheels
-* MPU6050 sensor
-* I2C LCD
-* Buzzer and emergency stop switch
-* Battery and voltage converters
+Sensors → Controller → Motor Drivers → Mecanum Wheel Movement
 
-*Note: These components describe the planned hardware configuration. Actual implementation and compatibility should be verified during assembly and testing.*
+Circuit diagrams and connection details are included in the project files.
 
-## Simulation and Testing
+## 3. Simulation and Testing
 
-The repository contains circuit design and simulation resources for developing and testing the robot's functions.
+The repository contains simulation and circuit design resources, including the Wokwi hardware design.
 
-To explore the project:
+To get started:
 
-1. Open the `wokwi design(hardware)/` folder.
-2. Review the available circuit design and source files.
-3. Open the simulation files using the appropriate simulation environment.
-4. Test the available functionality and review the documentation.
+1. Open the `wokiwi design(hardware)/` folder.
+2. Review `diagram.json` and `sketch.ino`.
+3. Open the circuit in Wokwi and check the available connections.
+4. Run the simulation and test the functions supported by the current setup.
 
-## Current Development Status
+Simulation support depends on the components and code implemented in the selected environment. Not every hardware component may be fully simulated.
 
-The project includes documentation, circuit design resources, presentation materials, and simulation files. The physical robot implementation and hardware testing should be considered separate from simulation results.
+## 4. Proposed Physical Implementation
 
-## Future Improvements
+The planned robot will use a chassis fitted with four mecanum wheels and DC motors. The Arduino Mega will handle the main control tasks, while the motor drivers will control wheel movement. The ultrasonic sensors and RPLIDAR will provide obstacle and surroundings data. The MPU6050 will help monitor the robot's motion.
 
-* Improve obstacle detection and avoidance.
-* Integrate sensor readings with autonomous movement.
-* Test the complete system with physical hardware.
-* Improve navigation and movement reliability.
+The battery and voltage converters will supply the required power to the system. All wiring, voltage levels and motor connections will need to be verified before powering the assembled robot.
 
-## Project Purpose
+## 5. Limitations and Future Work
 
-MECAVISION is being developed as a robotics project to explore autonomous navigation, sensor integration, and mecanum-wheel movement.
+The simulation helps test the circuit layout and the functions supported by the software, but it cannot fully reproduce real-world sensor behaviour, motor response, wheel traction or battery performance.
+
+The next steps are to complete the hardware assembly, verify all connections, test each sensor and motor separately, and then test obstacle avoidance with the complete robot. Physical performance will need to be confirmed through actual testing.
+
+## Project Files
+
+* `Documentation/` – Project documentation
+* `Simulations/` – Simulation resources
+* `circuit diagram/` – Circuit diagrams
+* `presentation/` – Presentation files
+* `wokiwi design(hardware)/` – Wokwi design and code
 
 ---
 
